@@ -1,3 +1,8 @@
 # Specs
 
-All specs that for AI to generate code.
+All specs for AI to generate code.
+
+## Index
+
+- [instruction.md](instruction.md) — Project setup instructions
+- [gba-design.md](gba-design.md) — Core architecture design document
