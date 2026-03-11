@@ -1,0 +1,24 @@
+Implement **Phase {{ phase_index }}/{{ phase_total }}: {{ phase_name }}**.
+
+## Phase Objective
+
+{{ phase_description }}
+
+## Current Repository Structure
+
+```
+{{ repo_tree }}
+```
+
+## Scope
+
+Only implement what belongs to this phase as defined in the design spec. Do not implement functionality from other phases. Do not refactor existing code unless the design spec requires it.
+
+If a function depends on a component from a future phase, define the minimal trait/interface it needs and implement against that interface.
+
+## Deliverables
+
+After completing this phase:
+1. List all files created or modified
+2. Note any deviations from the design spec with justification
+3. Confirm `cargo build` and `cargo clippy -- -D warnings` pass

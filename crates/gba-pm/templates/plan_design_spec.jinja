@@ -1,0 +1,50 @@
+The developer has approved the approach. Generate the formal design specification now.
+
+This document will be the **sole reference** for the coding agent that implements this feature. It must be complete and unambiguous.
+
+## Required Sections
+
+### 1. Overview
+- Feature name and one-paragraph summary
+- Problem statement
+- Scope: what is included and explicitly excluded
+
+### 2. Development Plan
+Ordered list of implementation phases. For each phase:
+- Phase name and objective
+- Files to create or modify
+- Estimated complexity (low / medium / high)
+- Dependencies on other phases
+- The last phase must be testing
+
+### 3. Interface Design
+- All new public APIs, functions, traits, or endpoints
+- Method signatures with parameter types and return types
+- Input/output contracts and constraints
+- Error cases and their handling
+
+### 4. Data Modeling
+- New types, structs, enums, or database schemas
+- Field descriptions with types and constraints
+- Relationships between data types
+- Serialization format and conventions (if applicable)
+
+### 5. Core Data Structures
+- Key algorithms or state machines
+- Data flow between components
+- Concurrency model (if applicable)
+
+### 6. Integration Points
+- How this feature connects to existing code
+- Files that need modification and what changes are needed
+- External dependencies added and justification
+- Configuration changes required
+
+### 7. Error Handling
+- Error types to define
+- Recovery strategies for each error case
+- User-facing error messages
+
+## Output Format
+
+Output a complete Markdown document. Use `##`/`###` headings, tables for structured data, and code blocks for type definitions and signatures. Write the file to `.gba/{{ feature_id }}_{{ feature_slug }}/specs/design.md`.

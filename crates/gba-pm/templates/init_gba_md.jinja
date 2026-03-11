@@ -1,0 +1,32 @@
+Generate a `gba.md` documentation file for the directory `{{ directory_path }}`.
+
+This file serves as contextual reference for AI agents working on this codebase. It should help an agent quickly understand what this directory is responsible for, what its key files do, and how it relates to the rest of the system.
+
+## Repository Structure
+
+```
+{{ repo_tree }}
+```
+
+## Analysis Context for This Directory
+
+{{ directory_analysis }}
+
+## Required Sections
+
+1. **Purpose** — One-paragraph summary of this directory's role in the system.
+
+2. **Key Files** — Table listing each important file, its responsibility, and what it exports/provides.
+
+3. **Architecture Notes** — How this directory fits into the overall system:
+   - Upstream dependencies (what it depends on)
+   - Downstream consumers (what depends on it)
+   - Data flow in and out
+
+4. **Conventions** — Directory-specific patterns, naming rules, or constraints that must be followed when modifying code here.
+
+5. **Important Types & Interfaces** — Most important public types, traits, or interfaces that other parts of the system rely on.
+
+## Output Format
+
+Output the Markdown content directly. Use `##` headings, tables where helpful. Keep it under 150 lines. Do not include a title heading — the file is named `gba.md` and resides in the directory it describes.

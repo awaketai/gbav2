@@ -29,5 +29,14 @@ cargo generate tyrchen/rust-lib-template
 
 1.task kind 应该有 verification
 2.任务执行结果应该记录 turns / cost，放在 state.yml 中，最后的额 PR link 也放进去
-3.在 `gba run` 过程中，如果终端，下次运行可以继续恢复（在提示词中提现）
+3.在 `gba run` 过程中，如果中断，下次运行可以继续恢复（在提示词中提现）
 4.预先思考好所有场景下的提示词，放在 crates/gba-pm/templates 下，我来review，提示词用英文
+
+## 提示词优化
+
+目前这些提示词哪些是作为 system prompt 添加到 claude code 系统提示词中，哪些是作为 user prompt 来驱动完成工作？比如 `gba init` 的 user prompt 是什么？
+
+请思考在不同的场景下，哪些需要 claude code preset，哪些不需要，哪些需要完整的工具，哪些不需要，这个应该在哪里定义，是写在 engine 中，还是配置中？
+
+## 构建 gba
+

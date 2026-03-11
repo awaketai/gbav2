@@ -1,0 +1,27 @@
+Generate a `## GBA Context` section to append to the `CLAUDE.md` file in this repository.
+
+## Repository
+
+`{{ working_dir }}`
+
+## Generated gba.md Files
+
+{% for doc in gba_md_files %}
+- `{{ doc.path }}` — {{ doc.summary }}
+{% endfor %}
+
+## Required Content
+
+The section must include:
+
+1. **GBA workspace description** — This repo uses GBA for AI-driven feature development. `.gba/` contains feature workspaces with specs and planning artifacts.
+
+2. **Directory documentation references** — List each `gba.md` file above with its path and summary.
+
+3. **Usage guidance** — Instruct Claude to read the relevant `gba.md` file before modifying code in any directory, to understand architecture, conventions, and relationships.
+
+4. **Feature workspace convention** — Features in `.gba/NNNN_<slug>/specs/` contain `design.md` and `verification.md` which should be consulted when implementing or reviewing feature code.
+
+## Output Format
+
+Output the Markdown section directly, starting with `## GBA Context`. Keep it under 60 lines.

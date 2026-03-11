@@ -1,0 +1,44 @@
+Now generate the verification plan based on the design specification you just created.
+
+This plan will be executed after implementation to verify correctness, reliability, and code quality.
+
+## Required Sections
+
+### 1. Unit Tests
+For each module/component in the design:
+- Test function name (`test_should_` prefix describing behavior)
+- What behavior it verifies
+- Input data and expected output
+- Edge cases (empty inputs, boundary values, error conditions)
+
+### 2. Integration Tests
+End-to-end scenarios testing the feature as a whole:
+- Scenario description
+- Setup steps (prerequisites, fixtures)
+- Actions to perform
+- Expected outcomes
+- Teardown / cleanup
+
+### 3. Error Case Tests
+For each error type in the design:
+- How to trigger the error
+- Expected error type and message
+- Expected system behavior
+
+### 4. Build & Lint Verification
+- `cargo build` — zero errors, zero warnings
+- `cargo +nightly fmt --check` — no formatting issues
+- `cargo clippy -- -D warnings` — no lint warnings
+- `cargo audit` — no new security vulnerabilities
+
+### 5. Manual Verification Checklist
+- Smoke tests for a human reviewer
+- Expected observable behaviors
+- Performance sanity checks (if applicable)
+
+### 6. Acceptance Criteria
+Numbered checklist of conditions that must ALL be true. Each criterion must be objectively verifiable.
+
+## Output Format
+
+Output a Markdown document. Use checkboxes (`- [ ]`) for verifiable items. Use code blocks for test signatures and commands. Write the file to `.gba/{{ feature_id }}_{{ feature_slug }}/specs/verification.md`.

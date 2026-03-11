@@ -1,0 +1,39 @@
+Review ALL code generated for the `{{ feature_slug }}` feature. Compare the implementation against the design spec and verification plan. Identify real, actionable issues only.
+
+## Review Checklist
+
+**Correctness**: Does the implementation match the design spec's interfaces, types, and behavior? Are edge cases handled? Are all error modes covered?
+
+**Code Quality**: No `unwrap()`/`expect()` in production code? No `println!`/`dbg!`? Uses `tracing`? No TODO/placeholder code? Functions under 150 lines? Proper Rust idioms?
+
+**Architecture**: Follows module structure from design spec? Correct dependency direction? Minimal public API surface? Types make illegal states unrepresentable?
+
+**Security**: No unsafe blocks without justification? External input validated? No secrets logged or exposed?
+
+**Testing**: Critical paths from the verification plan are covered? Error cases tested? Test names follow `test_should_` convention? Tests are deterministic?
+
+## Output Format
+
+Respond with a JSON array of issues:
+
+```json
+[
+  {
+    "severity": "error | warning | suggestion",
+    "file": "path/to/file.rs",
+    "line": 42,
+    "category": "correctness | quality | architecture | security | testing",
+    "description": "What is wrong",
+    "suggestion": "How to fix it"
+  }
+]
+```
+
+Severity levels:
+- **error**: Must fix. Incorrect behavior, missing error handling, security issues.
+- **warning**: Should fix. Code quality, missing tests, design deviations.
+- **suggestion**: Nice to have. Style, docs, optimization.
+
+If everything passes, respond with `[]`.
+
+Be strict but fair — no false positives. Every issue must reference a specific file and describe exactly what is wrong.

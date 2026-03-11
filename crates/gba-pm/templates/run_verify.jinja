@@ -1,0 +1,69 @@
+Execute the verification plan for `{{ feature_slug }}` systematically.
+
+{% if review_issues %}
+## Previously Identified Issues (Now Resolved)
+
+These issues were found during code review and have been fixed. Verify each is properly resolved:
+
+{% for issue in review_issues %}
+- {{ issue }}
+{% endfor %}
+{% endif %}
+
+## Verification Steps
+
+### Step 1: Build & Lint
+Run and report results:
+1. `cargo build` — zero errors, zero warnings
+2. `cargo +nightly fmt --check` — no formatting issues
+3. `cargo clippy -- -D warnings` — no lint warnings
+4. `cargo test` — all tests pass
+
+### Step 2: Unit Test Coverage
+For each unit test in the verification plan: confirm it exists, tests the described behavior, and passes.
+
+### Step 3: Integration Test Coverage
+For each integration test: confirm it exists, covers the scenario, and passes.
+
+### Step 4: Error Case Verification
+For each error case: confirm a test triggers the condition, and error type/message match the spec.
+
+### Step 5: Acceptance Criteria
+Verify each acceptance criterion from the verification plan. Explain HOW you verified it.
+
+{% if review_issues %}
+### Step 6: Review Fix Verification
+For each previously identified issue, confirm the fix is correct and no regressions were introduced.
+{% endif %}
+
+## Output Format
+
+```json
+{
+  "passed": true,
+  "summary": "One-line overall result",
+  "steps": [
+    {
+      "name": "Build & Lint",
+      "passed": true,
+      "details": "string"
+    }
+  ],
+  "failures": [
+    {
+      "step": "which step",
+      "description": "what went wrong",
+      "suggestion": "how to fix"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion": "text",
+      "met": true,
+      "evidence": "how verified"
+    }
+  ]
+}
+```
+
+Set `"passed": true` only if ALL steps pass and ALL acceptance criteria are met.

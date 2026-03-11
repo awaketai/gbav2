@@ -1,0 +1,59 @@
+Analyze the repository at `{{ working_dir }}` and produce a structured report of its architecture.
+
+## Repository Structure
+
+```
+{{ repo_tree }}
+```
+
+## Instructions
+
+1. **Identify important directories** — List every directory that contains meaningful source code, configuration, or infrastructure. Exclude build artifacts, dependency caches, and generated files (e.g., `node_modules/`, `target/`, `dist/`, `.git/`).
+
+2. **For each important directory**, determine:
+   - Its purpose (what responsibility it owns)
+   - Key files and what they do
+   - Relationships to other directories (imports, dependencies, data flow)
+   - Tech stack used (languages, frameworks, libraries)
+
+3. **Identify overall architecture**:
+   - Architectural pattern (monolith, microservices, layered, hexagonal, etc.)
+   - Entry points (main files, CLI entry, server bootstrap)
+   - Core domain concepts
+   - External dependencies and integrations
+   - Build system and toolchain
+
+4. **Detect conventions**:
+   - Naming conventions (files, modules, types)
+   - Testing patterns (unit test location, integration test structure)
+   - Configuration approach (env vars, config files, constants)
+   - Error handling patterns
+
+## Output Format
+
+Respond with a JSON object following this exact schema:
+
+```json
+{
+  "architecture_pattern": "string",
+  "tech_stack": ["string"],
+  "entry_points": ["string — path to main/entry files"],
+  "conventions": {
+    "naming": "string",
+    "testing": "string",
+    "configuration": "string",
+    "error_handling": "string"
+  },
+  "directories": [
+    {
+      "path": "string — relative directory path",
+      "purpose": "string — one-line description",
+      "key_files": ["string — relative file paths"],
+      "relationships": ["string — e.g. 'imports from src/models'"],
+      "tech": ["string"]
+    }
+  ]
+}
+```
+
+Output ONLY the JSON object, no additional text.
