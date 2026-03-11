@@ -82,18 +82,30 @@
 //! ```
 
 mod config;
+mod engine;
 mod error;
 mod event;
+mod git;
+mod plan;
 mod preset;
+mod reviewer;
+mod runner;
 mod session;
+mod verifier;
 mod workspace;
 
 // Re-export public API
 pub use config::{GbaConfig, SessionConfig, SessionsConfig};
+pub use engine::GbaEngine;
 pub use error::GbaCoreError;
 pub use event::GbaEvent;
+pub use git::GitOps;
+pub use plan::PlanSession;
 pub use preset::AgentPreset;
+pub use reviewer::{ReviewIssue, ReviewResult, Reviewer};
+pub use runner::{Phase, Runner};
 pub use session::{AgentMessage, AgentSession};
+pub use verifier::{VerificationResult, Verifier};
 pub use workspace::Workspace;
 
 // Re-export gba-pm types that users commonly need

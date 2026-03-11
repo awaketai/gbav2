@@ -43,7 +43,7 @@ const TEMPLATE_RUN_VERIFY: &str = include_str!("templates/run_verify.jinja");
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PromptManager {
     /// MiniJinja environment with loaded templates.
     env: Environment<'static>,
