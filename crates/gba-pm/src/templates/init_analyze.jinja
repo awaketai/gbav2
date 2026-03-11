@@ -1,0 +1,41 @@
+Analyze the repository structure at {{ working_dir }}.
+
+## Repository Tree
+
+```
+{{ repo_tree }}
+```
+
+## Task
+
+Examine the repository structure and output a JSON analysis with the following schema:
+
+```json
+{
+  "primary_language": "string",
+  "frameworks": ["string"],
+  "build_system": "string",
+  "package_manager": "string or null",
+  "directories": [
+    {
+      "path": "string",
+      "purpose": "string (brief description)",
+      "importance": "high | medium | low"
+    }
+  ],
+  "config_files": ["string"],
+  "documentation_files": ["string"],
+  "suggested_gba_md_dirs": ["string"]
+}
+```
+
+Requirements:
+1. Identify the primary programming language
+2. List detected frameworks and libraries
+3. Identify the build system (e.g., Cargo, npm, pip)
+4. List key directories with their purposes
+5. Identify configuration files
+6. Identify documentation files
+7. Suggest directories that would benefit from a `gba.md` file
+
+Output ONLY valid JSON, no additional text.

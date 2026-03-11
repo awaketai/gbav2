@@ -1,0 +1,45 @@
+Review the code changes for feature: {{ feature_slug }}
+
+## Working Directory
+
+{{ working_dir }}
+
+## Task
+
+Review all code changes made during this feature implementation. Identify issues and output a JSON report.
+
+For each issue found, provide:
+- File path
+- Line range (if applicable)
+- Severity: "critical" | "warning" | "suggestion"
+- Description
+- Suggested fix
+
+Output JSON with the following schema:
+
+```json
+{
+  "summary": "string (overall assessment)",
+  "issues": [
+    {
+      "file": "string",
+      "lines": "string or null (e.g., '10-25')",
+      "severity": "critical | warning | suggestion",
+      "description": "string",
+      "suggestion": "string"
+    }
+  ],
+  "passed": boolean
+}
+```
+
+Review criteria:
+1. **Correctness**: Does the code implement the design specification correctly?
+2. **Error Handling**: Are all error cases handled properly without unwrap/expect?
+3. **Code Quality**: Does the code follow clean code principles?
+4. **Documentation**: Are public APIs documented?
+5. **Security**: Are there any security vulnerabilities?
+6. **Performance**: Are there obvious performance issues?
+7. **Testing**: Are critical paths tested?
+
+Output ONLY valid JSON, no additional text.
