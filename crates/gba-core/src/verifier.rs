@@ -44,7 +44,7 @@ pub struct VerificationResult {
 /// # async fn main() -> Result<(), gba_core::GbaCoreError> {
 /// let config = GbaConfig::new("/repo");
 /// let pm = PromptManager::new(None)?;
-/// let verifier = Verifier::new(&config, &pm, "0001")?;
+/// let verifier = Verifier::new(&config, &pm, "0001");
 ///
 /// let result = verifier.verify().await?;
 /// if result.passed {

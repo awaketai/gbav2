@@ -67,7 +67,7 @@ use gba_pm::{GbaMdEntry, PromptContext, PromptId, PromptManager};
 /// plan.finalize().await?;
 ///
 /// // Run implementation
-/// let mut stream = engine.run("0001").await?;
+/// let mut stream = engine.run("0001");
 /// while let Some(event) = stream.next().await {
 ///     println!("{:?}", event?);
 /// }
