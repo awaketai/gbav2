@@ -168,9 +168,9 @@ impl Verifier {
 
         if let Ok(json) = serde_json::from_str::<VerificationJson>(json_str) {
             let passed = json.passed.unwrap_or_else(|| {
-                json.status.as_ref().is_some_and(|s| {
-                    s.to_lowercase() == "passed" || s.to_lowercase() == "success"
-                })
+                json.status
+                    .as_ref()
+                    .is_some_and(|s| s.to_lowercase() == "passed" || s.to_lowercase() == "success")
             });
 
             return Ok(VerificationResult {
