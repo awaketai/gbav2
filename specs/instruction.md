@@ -40,3 +40,5 @@ cargo generate tyrchen/rust-lib-template
 
 ## 构建 gba
 
+构建一个新的额 git worktree(branch from main)，放在 .trees 下，仔细阅读 ./specs/gba-design.md 设计文档，根据其要求，使用 sub agent 分阶段完成其功能，每次完成一个阶段后提交代码，并确保 precommit hooks 通过。完成所有阶段后，启动一个新的 sub agent 调用 codex code review skill 对照 design spec 来 review 代码，然后根据 review 结果仔细思考，对合理的问题进行修改，并提交代码。最后，确保所有的测试都通过，并确保所有功能都符合 design spec 的要求后，生成一个 pull request，提供详细的 PR description。
+
