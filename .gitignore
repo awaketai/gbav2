@@ -4,4 +4,5 @@ Cargo.lock
 .zed
 .idea
 .claude/settings.local.json
-
+.claude/worktrees/
+.trees/
