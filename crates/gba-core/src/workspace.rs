@@ -102,7 +102,8 @@ impl Workspace {
     /// The directory name follows the pattern `{feature_id}_{feature_slug}`.
     #[must_use]
     pub fn feature_spec_dir(&self, feature_id: &str, feature_slug: &str) -> PathBuf {
-        self.specs_dir().join(format!("{}_{}", feature_id, feature_slug))
+        self.specs_dir()
+            .join(format!("{}_{}", feature_id, feature_slug))
     }
 
     /// Finds a feature directory by its ID.
@@ -118,7 +119,10 @@ impl Workspace {
         if !specs_dir.exists() {
             return Err(GbaCoreError::WorkspaceError(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
-                format!("Feature {} not found: specs directory does not exist", feature_id)
+                format!(
+                    "Feature {} not found: specs directory does not exist",
+                    feature_id
+                ),
             )));
         }
 
@@ -135,7 +139,7 @@ impl Workspace {
 
         Err(GbaCoreError::WorkspaceError(std::io::Error::new(
             std::io::ErrorKind::NotFound,
-            format!("Feature {} not found", feature_id)
+            format!("Feature {} not found", feature_id),
         )))
     }
 
@@ -257,7 +261,9 @@ impl Workspace {
         feature_slug: &str,
         content: &str,
     ) -> Result<(), GbaCoreError> {
-        let path = self.feature_spec_dir(feature_id, feature_slug).join(DESIGN_SPEC_FILE);
+        let path = self
+            .feature_spec_dir(feature_id, feature_slug)
+            .join(DESIGN_SPEC_FILE);
         // Ensure the directory exists
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
@@ -364,7 +370,8 @@ mod tests {
         ws.initialize().expect("Failed to initialize");
 
         // Create a feature
-        ws.create_feature("add-auth").expect("Failed to create feature");
+        ws.create_feature("add-auth")
+            .expect("Failed to create feature");
 
         let path = ws.design_spec_path("0001").expect("Failed to get path");
         assert_eq!(
@@ -379,12 +386,15 @@ mod tests {
         let ws = Workspace::new(temp_dir.path());
         ws.initialize().expect("Failed to initialize");
 
-        ws.create_feature("add-auth").expect("Failed to create feature");
+        ws.create_feature("add-auth")
+            .expect("Failed to create feature");
 
         let path = ws.verification_path("0001").expect("Failed to get path");
         assert_eq!(
             path,
-            temp_dir.path().join(".gba/specs/0001_add-auth/verification.md")
+            temp_dir
+                .path()
+                .join(".gba/specs/0001_add-auth/verification.md")
         );
     }
 
@@ -433,7 +443,8 @@ mod tests {
         let ws = Workspace::new(temp_dir.path());
         ws.initialize().expect("Failed to initialize");
 
-        ws.create_feature("add-auth").expect("Failed to create feature");
+        ws.create_feature("add-auth")
+            .expect("Failed to create feature");
 
         let slug = ws.get_feature_slug("0001").expect("Failed to get slug");
         assert_eq!(slug, "add-auth");
@@ -445,7 +456,8 @@ mod tests {
         let ws = Workspace::new(temp_dir.path());
         ws.initialize().expect("Failed to initialize");
 
-        ws.create_feature("add-auth").expect("Failed to create feature");
+        ws.create_feature("add-auth")
+            .expect("Failed to create feature");
         ws.write_design_spec("0001", "add-auth", "# Design\n\nTest design")
             .expect("Failed to write design spec");
 
@@ -462,7 +474,8 @@ mod tests {
         let ws = Workspace::new(temp_dir.path());
         ws.initialize().expect("Failed to initialize");
 
-        ws.create_feature("add-auth").expect("Failed to create feature");
+        ws.create_feature("add-auth")
+            .expect("Failed to create feature");
         ws.write_verification("0001", "add-auth", "# Verification\n\nTest plan")
             .expect("Failed to write verification");
 

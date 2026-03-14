@@ -1,33 +1,65 @@
 Generate the design specification document for feature: {{ feature_slug }}
 
-## Feature ID
+## Context
 
-{{ feature_id }}
-
-## Working Directory
-
-{{ working_dir }}
+- Feature ID: {{ feature_id }}
+- Working Directory: {{ working_dir }}
 
 ## Task
 
-Create a design specification document following the GBA format. The document should include:
+Create a **concise** design specification document. Write it to:
+`.gba/specs/{{ feature_id }}_{{ feature_slug }}/design.md`
 
-1. **Feature Overview**: Brief description of the feature
-2. **Goals**: What this feature aims to achieve
-3. **Non-Goals**: What is explicitly out of scope
-4. **Technical Design**:
-   - Architecture overview
-   - Data models
-   - API contracts
-   - Component interactions
-5. **Implementation Phases**: Break down into ordered phases with:
-   - Phase name
-   - Description
-   - Key tasks
-   - Acceptance criteria
-6. **Dependencies**: External dependencies and their versions
-7. **Risks and Mitigations**: Potential issues and how to address them
+## Document Structure
 
-Format the output as Markdown suitable for saving to `specs/{{ feature_id }}-{{ feature_slug }}-design.md`.
+```markdown
+# Design: {{ feature_slug }}
 
-Output the complete design specification.
+## Overview
+Brief description (2-3 sentences)
+
+## Goals
+- Goal 1
+- Goal 2
+
+## Non-Goals
+- What is explicitly out of scope
+
+## Technical Design
+
+### Architecture
+High-level component diagram or description
+
+### Data Models
+Key data structures (if applicable)
+
+### API Contracts
+Input/output specifications (if applicable)
+
+### Key Components
+List of components to implement
+
+## Implementation Phases
+
+### Phase 1: [Name]
+- Description
+- Key tasks
+- Acceptance criteria
+
+### Phase 2: [Name]
+...
+
+## Dependencies
+External dependencies needed
+
+## Risks
+Potential issues and mitigations
+```
+
+## Rules
+
+1. **Be Concise**: This is a design doc, not a novel. Keep it focused.
+2. **Be Practical**: Only include sections relevant to this feature.
+3. **Use File Tool**: Write the document directly to the spec file using the file write tool.
+
+Generate the design spec now.

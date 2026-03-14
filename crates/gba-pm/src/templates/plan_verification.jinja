@@ -1,33 +1,46 @@
 Generate the verification plan for feature: {{ feature_slug }}
 
-## Feature ID
+## Context
 
-{{ feature_id }}
+- Feature ID: {{ feature_id }}
+- Working Directory: {{ working_dir }}
 
 ## Task
 
-Create a verification plan document that defines how to verify the implementation is complete and correct. The plan should include:
+Create a **concise** verification plan document. Write it to:
+`.gba/specs/{{ feature_id }}_{{ feature_slug }}/verification.md`
 
-1. **Verification Scope**: What aspects will be verified
+## Document Structure
 
-2. **Test Categories**:
-   - Unit tests: Test individual functions/methods
-   - Integration tests: Test component interactions
-   - End-to-end tests: Test complete workflows
+```markdown
+# Verification Plan: {{ feature_slug }}
 
-3. **Test Cases**: For each test case include:
-   - Test ID
-   - Description
-   - Preconditions
-   - Steps
-   - Expected result
+## Scope
+What aspects will be verified
 
-4. **Manual Verification Steps**: Steps that require human verification
+## Test Strategy
 
-5. **Acceptance Criteria**: Checklist of criteria for feature acceptance
+### Unit Tests
+- Key test cases for core logic
 
-6. **Rollback Plan**: How to revert if issues are found
+### Integration Tests
+- Component interaction tests
 
-Format the output as Markdown suitable for saving to `specs/{{ feature_id }}-{{ feature_slug }}-verification.md`.
+### Manual Verification
+- Steps requiring human verification
 
-Output the complete verification plan.
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Rollback Plan
+How to revert if issues are found
+```
+
+## Rules
+
+1. **Be Concise**: Focus on the most important tests.
+2. **Be Practical**: Only include verifications that matter.
+3. **Use File Tool**: Write the document directly to the spec file using the file write tool.
+
+Generate the verification plan now.

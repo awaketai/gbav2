@@ -44,7 +44,11 @@ pub fn display_event(
             writeln!(handle, "\n\x1b[35m--- Code Review ---\x1b[0m")?;
         }
         GbaEvent::IssuesFound(issues) => {
-            writeln!(handle, "  \x1b[33m[!] Found {} issue(s):\x1b[0m", issues.len())?;
+            writeln!(
+                handle,
+                "  \x1b[33m[!] Found {} issue(s):\x1b[0m",
+                issues.len()
+            )?;
             for issue in issues {
                 writeln!(handle, "    - {issue}")?;
             }

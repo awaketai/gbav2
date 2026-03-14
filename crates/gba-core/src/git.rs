@@ -2,13 +2,18 @@
 //!
 //! This module provides git utilities for committing changes and creating pull requests.
 
+use crate::error::GbaCoreError;
 use std::path::PathBuf;
 use std::process::Command;
 use tracing::{debug, info};
-use crate::error::GbaCoreError;
 
 /// Default pre-commit hook commands to run
-const DEFAULT_HOOKS: &[&str] = &["cargo build", "cargo +nightly fmt", "cargo clippy -- -D warnings", "cargo audit"];
+const DEFAULT_HOOKS: &[&str] = &[
+    "cargo build",
+    "cargo +nightly fmt",
+    "cargo clippy -- -D warnings",
+    "cargo audit",
+];
 
 /// Git operations handler.
 #[derive(Debug, Clone)]

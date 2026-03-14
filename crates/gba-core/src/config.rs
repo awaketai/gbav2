@@ -70,6 +70,7 @@ impl Default for SessionsConfig {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GbaConfig {
     /// Working directory for the GBA operations.
+    #[serde(default)]
     pub working_dir: PathBuf,
     /// Session configurations for different scenarios.
     #[serde(default)]
@@ -164,7 +165,8 @@ impl GbaConfig {
     /// Returns the path to a feature's spec directory.
     #[must_use]
     pub fn feature_spec_dir(&self, feature_id: &str, feature_slug: &str) -> PathBuf {
-        self.specs_dir().join(format!("{}_{}", feature_id, feature_slug))
+        self.specs_dir()
+            .join(format!("{}_{}", feature_id, feature_slug))
     }
 }
 
