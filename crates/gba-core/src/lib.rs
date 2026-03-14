@@ -78,7 +78,7 @@
 //! workspace.initialize().expect("Failed to initialize");
 //!
 //! let feature_id = workspace.create_feature("add-auth").expect("Failed to create feature");
-//! workspace.write_design_spec(&feature_id, "# Design\n...").expect("Failed to write");
+//! workspace.write_design_spec(&feature_id, "add-auth", "# Design\n...").expect("Failed to write");
 //! ```
 
 mod config;

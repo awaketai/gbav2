@@ -37,9 +37,13 @@ pub enum GbaCoreError {
     #[error("Claude agent error: {0}")]
     ClaudeError(#[source] claude_agent_sdk_rs::ClaudeError),
 
-    /// Serialization error.
-    #[error("Serialization error: {0}")]
+    /// JSON serialization error.
+    #[error("JSON serialization error: {0}")]
     SerializationError(#[source] serde_json::Error),
+
+    /// YAML serialization error.
+    #[error("YAML serialization error: {0}")]
+    YamlError(String),
 }
 
 impl From<gba_pm::GbaPmError> for GbaCoreError {
@@ -63,5 +67,11 @@ impl From<serde_json::Error> for GbaCoreError {
 impl From<std::io::Error> for GbaCoreError {
     fn from(err: std::io::Error) -> Self {
         Self::WorkspaceError(err)
+    }
+}
+
+impl From<serde_yaml::Error> for GbaCoreError {
+    fn from(err: serde_yaml::Error) -> Self {
+        Self::YamlError(err.to_string())
     }
 }

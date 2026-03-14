@@ -62,7 +62,8 @@ enum Commands {
     },
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Initialize logging
@@ -74,8 +75,8 @@ fn main() -> Result<()> {
 
     // Dispatch to command handler
     match cli.command {
-        Commands::Init => commands::handle_init(cli.verbose),
-        Commands::Plan { feature_slug } => commands::handle_plan(&feature_slug, cli.verbose),
-        Commands::Run { feature_id } => commands::handle_run(&feature_id, cli.verbose),
+        Commands::Init => commands::handle_init(cli.verbose).await,
+        Commands::Plan { feature_slug } => commands::handle_plan(&feature_slug, cli.verbose).await,
+        Commands::Run { feature_id } => commands::handle_run(&feature_id, cli.verbose).await,
     }
 }

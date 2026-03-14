@@ -21,6 +21,11 @@ use ratatui::{
 use super::app::{App, AppState, Sender};
 use super::event::{Event, EventHandler};
 
+/// Command to finalize the planning session.
+const FINALIZE_COMMAND: &str = "/finalize";
+/// Command alias for finalizing.
+const DONE_COMMAND: &str = "/done";
+
 /// Runs the TUI application.
 ///
 /// This is the main event loop that:
@@ -46,8 +51,9 @@ pub async fn run_app(
     // Create the planning session
     let mut session = engine.plan(&app.feature_slug).await?;
     app.add_assistant_message(format!(
-        "Welcome! Let's plan the feature: {}\n\nDescribe what you want to build.",
-        app.feature_slug
+        "Welcome! Let's plan the feature: {}\n\nDescribe what you want to build.\n\n\
+         Type '{}' or '{}' when you're ready to generate the specification.",
+        app.feature_slug, FINALIZE_COMMAND, DONE_COMMAND
     ));
 
     let events = EventHandler::default();
@@ -70,20 +76,45 @@ pub async fn run_app(
                                 if c == 'd' && key.modifiers.contains(KeyModifiers::CONTROL) {
                                     return Ok(None);
                                 }
+                                // Handle Ctrl+F for finalize
+                                if c == 'f' && key.modifiers.contains(KeyModifiers::CONTROL) {
+                                    app.state = AppState::Finalizing;
+                                    match finalize_session(&mut app, &mut session).await {
+                                        Ok(()) => {}
+                                        Err(e) => {
+                                            app.set_error(e.to_string());
+                                        }
+                                    }
+                                    continue;
+                                }
                                 app.handle_char(c);
                             }
                             KeyCode::Backspace => {
                                 app.handle_backspace();
                             }
                             KeyCode::Enter => {
-                                if !app.input.is_empty() {
-                                    let message = app.input.clone();
-                                    app.add_user_message(message.clone());
+                                let input = app.input.clone();
+
+                                // Check for finalize command
+                                if input == FINALIZE_COMMAND || input == DONE_COMMAND {
+                                    app.clear_input();
+                                    app.state = AppState::Finalizing;
+                                    match finalize_session(&mut app, &mut session).await {
+                                        Ok(()) => {}
+                                        Err(e) => {
+                                            app.set_error(e.to_string());
+                                        }
+                                    }
+                                    continue;
+                                }
+
+                                if !input.is_empty() {
+                                    app.add_user_message(input.clone());
                                     app.clear_input();
                                     app.state = AppState::WaitingForResponse;
 
                                     // Send message and get response
-                                    match send_and_receive(&mut app, &mut session, &message).await {
+                                    match send_and_receive(&mut app, &mut session, &input).await {
                                         Ok(()) => {
                                             app.state = AppState::Dialogue;
                                         }
@@ -151,6 +182,21 @@ async fn send_and_receive(app: &mut App, session: &mut PlanSession, message: &st
 
     if !response.is_empty() {
         app.add_assistant_message(response);
+    }
+
+    Ok(())
+}
+
+/// Finalizes the planning session.
+async fn finalize_session(app: &mut App, session: &mut PlanSession) -> Result<()> {
+    app.add_assistant_message("Generating design specification and verification plan...".to_string());
+
+    session.finalize().await?;
+
+    if let Some(feature_id) = session.feature_id() {
+        app.set_completed(feature_id.to_string());
+    } else {
+        app.set_error("Failed to get feature ID after finalization".to_string());
     }
 
     Ok(())
@@ -224,7 +270,7 @@ fn draw_messages(frame: &mut Frame, app: &App, area: Rect) {
 
     // Add status indicator
     let status = match app.state {
-        AppState::Dialogue => "Ready for input. Press Enter to send, Esc to cancel.",
+        AppState::Dialogue => "Ready. Enter to send, Esc to cancel. Type /finalize or /done when ready, or Ctrl+F.",
         AppState::WaitingForResponse => "Waiting for assistant response...",
         AppState::Finalizing => "Finalizing and generating specs...",
         AppState::Completed => "Planning complete! Press Enter to exit.",
@@ -265,7 +311,7 @@ fn draw_input(frame: &mut Frame, app: &App, area: Rect) {
 
     let input = Paragraph::new(input_text).style(input_style).block(
         Block::default()
-            .title(" Input (Enter to send, Ctrl+C to quit) ")
+            .title(" Input (Enter to send, /finalize when done, Ctrl+C to quit) ")
             .borders(Borders::ALL)
             .border_style(input_style),
     );

@@ -5,6 +5,7 @@
 //! - `plan`: Start interactive planning session
 //! - `run`: Execute feature implementation
 
+mod display;
 mod init;
 mod plan;
 mod run;

@@ -3,6 +3,8 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+use crate::error::GbaCoreError;
+
 /// Single session configuration parameters.
 ///
 /// These parameters can be tuned by users via `.gba/config.yaml`.
@@ -84,6 +86,30 @@ impl GbaConfig {
         }
     }
 
+    /// Loads configuration from the working directory.
+    ///
+    /// This method:
+    /// 1. Checks if `.gba/config.yaml` exists
+    /// 2. If exists, loads and parses the YAML configuration
+    /// 3. If not exists, returns default configuration
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the config file exists but cannot be read or parsed.
+    pub fn load(working_dir: impl Into<PathBuf>) -> Result<Self, GbaCoreError> {
+        let working_dir = working_dir.into();
+        let config_path = working_dir.join(".gba").join("config.yaml");
+
+        if config_path.exists() {
+            let content = std::fs::read_to_string(&config_path)?;
+            let mut config: Self = serde_yaml::from_str(&content)?;
+            config.working_dir = working_dir;
+            Ok(config)
+        } else {
+            Ok(Self::new(working_dir))
+        }
+    }
+
     /// Creates a new `GbaConfig` with the specified working directory and sessions config.
     #[must_use]
     pub fn with_sessions(working_dir: impl Into<PathBuf>, sessions: SessionsConfig) -> Self {
@@ -91,6 +117,24 @@ impl GbaConfig {
             working_dir: working_dir.into(),
             sessions,
         }
+    }
+
+    /// Saves the configuration to `.gba/config.yaml`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be written.
+    pub fn save(&self) -> Result<(), GbaCoreError> {
+        let config_path = self.config_file();
+
+        // Ensure parent directory exists
+        if let Some(parent) = config_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        let content = serde_yaml::to_string(self)?;
+        std::fs::write(&config_path, content)?;
+        Ok(())
     }
 
     /// Returns the path to the `.gba/` directory.
@@ -119,14 +163,15 @@ impl GbaConfig {
 
     /// Returns the path to a feature's spec directory.
     #[must_use]
-    pub fn feature_spec_dir(&self, feature_id: &str) -> PathBuf {
-        self.specs_dir().join(format!("{}_", feature_id))
+    pub fn feature_spec_dir(&self, feature_id: &str, feature_slug: &str) -> PathBuf {
+        self.specs_dir().join(format!("{}_{}", feature_id, feature_slug))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::TempDir;
 
     #[test]
     fn test_session_config_default() {
@@ -176,8 +221,8 @@ mod tests {
             PathBuf::from("/path/to/repo/.gba/trees")
         );
         assert_eq!(
-            config.feature_spec_dir("0001"),
-            PathBuf::from("/path/to/repo/.gba/specs/0001_")
+            config.feature_spec_dir("0001", "add-auth"),
+            PathBuf::from("/path/to/repo/.gba/specs/0001_add-auth")
         );
     }
 
@@ -217,5 +262,73 @@ mod tests {
 
         let deserialized: GbaConfig = serde_yaml::from_str(&yaml).expect("Failed to deserialize");
         assert_eq!(deserialized.working_dir, config.working_dir);
+    }
+
+    #[test]
+    fn test_gba_config_load_without_file() {
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+        let config = GbaConfig::load(temp_dir.path()).expect("Failed to load config");
+
+        assert_eq!(config.working_dir, temp_dir.path());
+        // Should use defaults
+        assert_eq!(config.sessions.init.max_turns, 3);
+    }
+
+    #[test]
+    fn test_gba_config_load_with_file() {
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+
+        // Create .gba directory and config file
+        let gba_dir = temp_dir.path().join(".gba");
+        std::fs::create_dir_all(&gba_dir).expect("Failed to create .gba dir");
+
+        let config_content = r#"
+working_dir: /dummy
+sessions:
+  init:
+    model: claude-opus-4
+    max_turns: 5
+  plan:
+    model: claude-sonnet-4-20250514
+    max_turns: 50
+  run_phase:
+    model: claude-sonnet-4-20250514
+    max_turns: 25
+  run_review:
+    model: claude-haiku
+    max_turns: 10
+  run_verify:
+    model: claude-sonnet-4-20250514
+    max_turns: 15
+"#;
+        std::fs::write(gba_dir.join("config.yaml"), config_content)
+            .expect("Failed to write config");
+
+        let config = GbaConfig::load(temp_dir.path()).expect("Failed to load config");
+
+        // working_dir should be overridden by load()
+        assert_eq!(config.working_dir, temp_dir.path());
+        assert_eq!(config.sessions.init.model, "claude-opus-4");
+        assert_eq!(config.sessions.init.max_turns, 5);
+        assert_eq!(config.sessions.plan.max_turns, 50);
+        assert_eq!(config.sessions.run_phase.max_turns, 25);
+        assert_eq!(config.sessions.run_review.model, "claude-haiku");
+    }
+
+    #[test]
+    fn test_gba_config_save() {
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+
+        let mut config = GbaConfig::new(temp_dir.path());
+        config.sessions.init.max_turns = 7;
+
+        config.save().expect("Failed to save config");
+
+        // Verify file exists
+        assert!(config.config_file().exists());
+
+        // Load and verify
+        let loaded = GbaConfig::load(temp_dir.path()).expect("Failed to load config");
+        assert_eq!(loaded.sessions.init.max_turns, 7);
     }
 }

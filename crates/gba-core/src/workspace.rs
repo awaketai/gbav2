@@ -98,14 +98,78 @@ impl Workspace {
     }
 
     /// Returns the path to a feature's spec directory.
+    ///
+    /// The directory name follows the pattern `{feature_id}_{feature_slug}`.
     #[must_use]
-    pub fn feature_spec_dir(&self, feature_id: &str) -> PathBuf {
-        self.specs_dir().join(format!("{}_", feature_id))
+    pub fn feature_spec_dir(&self, feature_id: &str, feature_slug: &str) -> PathBuf {
+        self.specs_dir().join(format!("{}_{}", feature_id, feature_slug))
+    }
+
+    /// Finds a feature directory by its ID.
+    ///
+    /// Returns the full path to the feature directory if found.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the feature directory cannot be found.
+    pub fn find_feature_dir(&self, feature_id: &str) -> Result<PathBuf, GbaCoreError> {
+        let specs_dir = self.specs_dir();
+
+        if !specs_dir.exists() {
+            return Err(GbaCoreError::WorkspaceError(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!("Feature {} not found: specs directory does not exist", feature_id)
+            )));
+        }
+
+        // Look for directory starting with the feature_id
+        for entry in fs::read_dir(&specs_dir)? {
+            let entry = entry?;
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+
+            if name_str.starts_with(&format!("{}_", feature_id)) || name_str == feature_id {
+                return Ok(entry.path());
+            }
+        }
+
+        Err(GbaCoreError::WorkspaceError(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("Feature {} not found", feature_id)
+        )))
+    }
+
+    /// Gets the slug for a feature by reading the .slug file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the feature directory or .slug file cannot be found.
+    pub fn get_feature_slug(&self, feature_id: &str) -> Result<String, GbaCoreError> {
+        let feature_dir = self.find_feature_dir(feature_id)?;
+        let slug_file = feature_dir.join(".slug");
+
+        if slug_file.exists() {
+            Ok(fs::read_to_string(&slug_file)?.trim().to_string())
+        } else {
+            // Try to extract slug from directory name
+            let dir_name = feature_dir
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
+
+            // Extract slug from "0001_slug" format
+            if let Some(underscore_pos) = dir_name.find('_') {
+                Ok(dir_name[underscore_pos + 1..].to_string())
+            } else {
+                Ok(String::new())
+            }
+        }
     }
 
     /// Creates a new feature spec directory and returns its ID.
     ///
     /// The feature ID is a zero-padded 4-digit number (e.g., "0001").
+    /// The directory name follows the pattern `{feature_id}_{feature_slug}`.
     ///
     /// # Errors
     ///
@@ -113,10 +177,10 @@ impl Workspace {
     /// there's an issue reading existing features.
     pub fn create_feature(&self, feature_slug: &str) -> Result<String, GbaCoreError> {
         let feature_id = self.next_feature_id()?;
-        let feature_dir = self.feature_spec_dir(&feature_id);
+        let feature_dir = self.feature_spec_dir(&feature_id, feature_slug);
         fs::create_dir_all(&feature_dir)?;
 
-        // Create a slug file to store the feature slug
+        // Create a slug file to store the feature slug (for backward compatibility)
         let slug_file = feature_dir.join(".slug");
         fs::write(&slug_file, feature_slug)?;
 
@@ -153,15 +217,23 @@ impl Workspace {
     }
 
     /// Returns the path to a feature's design spec file.
-    #[must_use]
-    pub fn design_spec_path(&self, feature_id: &str) -> PathBuf {
-        self.feature_spec_dir(feature_id).join(DESIGN_SPEC_FILE)
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the feature directory cannot be found.
+    pub fn design_spec_path(&self, feature_id: &str) -> Result<PathBuf, GbaCoreError> {
+        let feature_dir = self.find_feature_dir(feature_id)?;
+        Ok(feature_dir.join(DESIGN_SPEC_FILE))
     }
 
     /// Returns the path to a feature's verification plan file.
-    #[must_use]
-    pub fn verification_path(&self, feature_id: &str) -> PathBuf {
-        self.feature_spec_dir(feature_id).join(VERIFICATION_FILE)
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the feature directory cannot be found.
+    pub fn verification_path(&self, feature_id: &str) -> Result<PathBuf, GbaCoreError> {
+        let feature_dir = self.find_feature_dir(feature_id)?;
+        Ok(feature_dir.join(VERIFICATION_FILE))
     }
 
     /// Reads the design spec for a feature.
@@ -170,7 +242,7 @@ impl Workspace {
     ///
     /// Returns an error if the file cannot be read.
     pub fn read_design_spec(&self, feature_id: &str) -> Result<String, GbaCoreError> {
-        let path = self.design_spec_path(feature_id);
+        let path = self.design_spec_path(feature_id)?;
         Ok(fs::read_to_string(&path)?)
     }
 
@@ -179,8 +251,13 @@ impl Workspace {
     /// # Errors
     ///
     /// Returns an error if the file cannot be written.
-    pub fn write_design_spec(&self, feature_id: &str, content: &str) -> Result<(), GbaCoreError> {
-        let path = self.design_spec_path(feature_id);
+    pub fn write_design_spec(
+        &self,
+        feature_id: &str,
+        feature_slug: &str,
+        content: &str,
+    ) -> Result<(), GbaCoreError> {
+        let path = self.feature_spec_dir(feature_id, feature_slug).join(DESIGN_SPEC_FILE);
         // Ensure the directory exists
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
@@ -194,7 +271,7 @@ impl Workspace {
     ///
     /// Returns an error if the file cannot be read.
     pub fn read_verification(&self, feature_id: &str) -> Result<String, GbaCoreError> {
-        let path = self.verification_path(feature_id);
+        let path = self.verification_path(feature_id)?;
         Ok(fs::read_to_string(&path)?)
     }
 
@@ -203,8 +280,15 @@ impl Workspace {
     /// # Errors
     ///
     /// Returns an error if the file cannot be written.
-    pub fn write_verification(&self, feature_id: &str, content: &str) -> Result<(), GbaCoreError> {
-        let path = self.verification_path(feature_id);
+    pub fn write_verification(
+        &self,
+        feature_id: &str,
+        feature_slug: &str,
+        content: &str,
+    ) -> Result<(), GbaCoreError> {
+        let path = self
+            .feature_spec_dir(feature_id, feature_slug)
+            .join(VERIFICATION_FILE);
         // Ensure the directory exists
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
@@ -213,9 +297,8 @@ impl Workspace {
     }
 
     /// Checks if a feature exists.
-    #[must_use]
     pub fn feature_exists(&self, feature_id: &str) -> bool {
-        self.feature_spec_dir(feature_id).is_dir()
+        self.find_feature_dir(feature_id).is_ok()
     }
 
     /// Lists all feature IDs in the workspace.
@@ -269,26 +352,39 @@ mod tests {
     fn test_feature_spec_dir() {
         let ws = Workspace::new("/repo");
         assert_eq!(
-            ws.feature_spec_dir("0001"),
-            PathBuf::from("/repo/.gba/specs/0001_")
+            ws.feature_spec_dir("0001", "add-auth"),
+            PathBuf::from("/repo/.gba/specs/0001_add-auth")
         );
     }
 
     #[test]
     fn test_design_spec_path() {
-        let ws = Workspace::new("/repo");
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+        let ws = Workspace::new(temp_dir.path());
+        ws.initialize().expect("Failed to initialize");
+
+        // Create a feature
+        ws.create_feature("add-auth").expect("Failed to create feature");
+
+        let path = ws.design_spec_path("0001").expect("Failed to get path");
         assert_eq!(
-            ws.design_spec_path("0001"),
-            PathBuf::from("/repo/.gba/specs/0001_/design.md")
+            path,
+            temp_dir.path().join(".gba/specs/0001_add-auth/design.md")
         );
     }
 
     #[test]
     fn test_verification_path() {
-        let ws = Workspace::new("/repo");
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+        let ws = Workspace::new(temp_dir.path());
+        ws.initialize().expect("Failed to initialize");
+
+        ws.create_feature("add-auth").expect("Failed to create feature");
+
+        let path = ws.verification_path("0001").expect("Failed to get path");
         assert_eq!(
-            ws.verification_path("0001"),
-            PathBuf::from("/repo/.gba/specs/0001_/verification.md")
+            path,
+            temp_dir.path().join(".gba/specs/0001_add-auth/verification.md")
         );
     }
 
@@ -317,6 +413,13 @@ mod tests {
         assert_eq!(id, "0001");
         assert!(ws.feature_exists("0001"));
 
+        // Verify directory name includes slug
+        let feature_dir = ws.find_feature_dir("0001").expect("Failed to find feature");
+        assert_eq!(
+            feature_dir,
+            temp_dir.path().join(".gba/specs/0001_add-auth")
+        );
+
         let id2 = ws
             .create_feature("add-logging")
             .expect("Failed to create feature");
@@ -325,12 +428,25 @@ mod tests {
     }
 
     #[test]
+    fn test_get_feature_slug() {
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+        let ws = Workspace::new(temp_dir.path());
+        ws.initialize().expect("Failed to initialize");
+
+        ws.create_feature("add-auth").expect("Failed to create feature");
+
+        let slug = ws.get_feature_slug("0001").expect("Failed to get slug");
+        assert_eq!(slug, "add-auth");
+    }
+
+    #[test]
     fn test_write_and_read_design_spec() {
         let temp_dir = TempDir::new().expect("Failed to create temp dir");
         let ws = Workspace::new(temp_dir.path());
         ws.initialize().expect("Failed to initialize");
 
-        ws.write_design_spec("0001", "# Design\n\nTest design")
+        ws.create_feature("add-auth").expect("Failed to create feature");
+        ws.write_design_spec("0001", "add-auth", "# Design\n\nTest design")
             .expect("Failed to write design spec");
 
         let content = ws
@@ -346,7 +462,8 @@ mod tests {
         let ws = Workspace::new(temp_dir.path());
         ws.initialize().expect("Failed to initialize");
 
-        ws.write_verification("0001", "# Verification\n\nTest plan")
+        ws.create_feature("add-auth").expect("Failed to create feature");
+        ws.write_verification("0001", "add-auth", "# Verification\n\nTest plan")
             .expect("Failed to write verification");
 
         let content = ws
@@ -371,5 +488,15 @@ mod tests {
 
         let features = ws.list_features().expect("Failed to list features");
         assert_eq!(features, vec!["0001", "0002", "0003"]);
+    }
+
+    #[test]
+    fn test_find_feature_dir_not_found() {
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+        let ws = Workspace::new(temp_dir.path());
+        ws.initialize().expect("Failed to initialize");
+
+        let result = ws.find_feature_dir("0001");
+        assert!(result.is_err());
     }
 }

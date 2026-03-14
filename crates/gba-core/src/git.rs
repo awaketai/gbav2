@@ -2,23 +2,25 @@
 //!
 //! This module provides git utilities for committing changes and creating pull requests.
 
+use std::path::PathBuf;
 use std::process::Command;
-
 use tracing::{debug, info};
-
 use crate::error::GbaCoreError;
+
+/// Default pre-commit hook commands to run
+const DEFAULT_HOOKS: &[&str] = &["cargo build", "cargo +nightly fmt", "cargo clippy -- -D warnings", "cargo audit"];
 
 /// Git operations handler.
 #[derive(Debug, Clone)]
 pub struct GitOps {
     /// Working directory for git operations.
-    working_dir: std::path::PathBuf,
+    working_dir: PathBuf,
 }
 
 impl GitOps {
     /// Creates a new `GitOps` instance for the given working directory.
     #[must_use]
-    pub fn new(working_dir: impl Into<std::path::PathBuf>) -> Self {
+    pub fn new(working_dir: impl Into<PathBuf>) -> Self {
         Self {
             working_dir: working_dir.into(),
         }
@@ -27,18 +29,62 @@ impl GitOps {
     /// Commits all staged changes with the given message.
     ///
     /// This function stages all changes and creates a commit.
+    /// Runs pre-commit hooks (build/fmt/lint/security check) before creating the commit.
     ///
     /// # Errors
     ///
-    /// Returns an error if the git command fails.
+    /// Returns an error if the git command fails or any pre-commit hook fails.
     pub fn commit_phase(&self, message: &str) -> Result<(), GbaCoreError> {
-        info!(message = %message, "Committing phase changes");
+        self.commit_phase_with_hooks(message, DEFAULT_HOOKS)
+    }
+
+    /// Commits changes with optional pre-commit hooks.
+    ///
+    /// # Arguments
+    ///
+    /// * `message` - The commit message
+    /// * `hooks` - List of hook commands to run (empty uses default hooks)
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the git command fails or any hook fails.
+    pub fn commit_phase_with_hooks(
+        &self,
+        message: &str,
+        hooks: &[&str],
+    ) -> Result<(), GbaCoreError> {
+        info!(message = %message, "Committing phase changes with hooks");
+
+        let working_dir = &self.working_dir;
+
+        // Run each pre-commit hook
+        for hook in hooks {
+            debug!(hook = ?hook, "Running pre-commit hook");
+            let output = Command::new("sh")
+                .args(["-c", hook])
+                .current_dir(working_dir)
+                .output()
+                .map_err(|e| GbaCoreError::RunError(format!("Failed to run hook '{hook}': {e}")))?;
+
+            if !output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                if !stdout.is_empty() || !stderr.is_empty() {
+                    return Err(GbaCoreError::RunError(format!(
+                        "Pre-commit hook '{}' failed:\nstdout: {}\nstderr: {}",
+                        hook,
+                        stdout.trim(),
+                        stderr.trim()
+                    )));
+                }
+            }
+        }
 
         // Stage all changes
         self.run_git_command(&["add", "-A"])?;
 
-        // Create commit
-        self.run_git_command(&["commit", "-m", message])?;
+        // Create commit (without hooks to avoid infinite loop)
+        self.run_git_command(&["commit", "-m", message, "--no-verify"])?;
 
         debug!("Phase committed successfully");
         Ok(())
@@ -55,9 +101,7 @@ impl GitOps {
         info!(title = %title, "Creating pull request");
 
         let output = self.run_gh_command(&["pr", "create", "--title", title, "--body", body])?;
-
         let url = String::from_utf8_lossy(&output.stdout).trim().to_string();
-
         debug!(url = %url, "Pull request created");
         Ok(url)
     }

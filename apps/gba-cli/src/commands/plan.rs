@@ -28,17 +28,15 @@ use crate::tui::{App, run_app};
 /// # Errors
 ///
 /// Returns an error if planning fails or if terminal setup fails.
-pub fn handle_plan(feature_slug: &str, verbose: bool) -> Result<()> {
+pub async fn handle_plan(feature_slug: &str, verbose: bool) -> Result<()> {
     debug!(feature_slug = %feature_slug, "Starting plan command");
 
     let current_dir = std::env::current_dir()?;
-    let config = GbaConfig::new(&current_dir);
+    let config = GbaConfig::load(&current_dir)?;
     let prompt_manager = PromptManager::new(None)?;
     let engine = GbaEngine::new(config, prompt_manager)?;
 
-    // Use tokio runtime for async operations
-    let rt = tokio::runtime::Runtime::new()?;
-    rt.block_on(async { run_plan(&engine, feature_slug, verbose).await })
+    run_plan(&engine, feature_slug, verbose).await
 }
 
 /// Runs the planning process asynchronously.
