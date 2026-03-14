@@ -1,0 +1,23 @@
+Generate a GBA Context section to append to CLAUDE.md.
+
+## Working Directory
+
+{{ working_dir }}
+
+## Generated gba.md Files
+
+{% for entry in gba_md_files %}
+- `{{ entry.path }}`: {{ entry.summary }}
+{% endfor %}
+
+## Task
+
+Create a `## GBA Context` section that should be appended to the project's CLAUDE.md file. This section should:
+
+1. Reference all generated `gba.md` files
+2. Provide a brief overview of the GBA system setup
+3. Include guidance on how to use the gba.md files when working with this codebase
+
+Format the output as Markdown, starting with `## GBA Context`.
+
+Output only the section content that should be appended.

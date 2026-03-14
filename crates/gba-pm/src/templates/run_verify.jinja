@@ -1,0 +1,64 @@
+Execute the verification plan for feature: {{ feature_slug }}
+
+## Working Directory
+
+{{ working_dir }}
+
+## Verification Plan
+
+{{ verification_plan }}
+
+{% if review_issues %}
+## Known Issues from Review
+
+{% for issue in review_issues %}
+- {{ issue }}
+{% endfor %}
+{% endif %}
+
+## Task
+
+Execute the verification plan and report results. For each test case:
+
+1. Run the test (automated or manual)
+2. Record the result (pass/fail)
+3. Note any observations
+
+Output JSON with the following schema:
+
+```json
+{
+  "feature_id": "{{ feature_id }}",
+  "feature_slug": "{{ feature_slug }}",
+  "timestamp": "ISO 8601 timestamp",
+  "overall_result": "passed | failed | partial",
+  "test_results": [
+    {
+      "test_id": "string",
+      "category": "unit | integration | e2e | manual",
+      "description": "string",
+      "result": "passed | failed | skipped",
+      "duration_ms": number or null,
+      "error_message": "string or null",
+      "notes": "string or null"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion": "string",
+      "met": boolean,
+      "evidence": "string or null"
+    }
+  ],
+  "summary": "string",
+  "recommendations": ["string"]
+}
+```
+
+Requirements:
+1. Execute all automated tests
+2. Verify acceptance criteria are met
+3. Document any issues found
+4. Provide clear recommendations
+
+Output ONLY valid JSON, no additional text.

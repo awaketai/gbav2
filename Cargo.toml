@@ -41,3 +41,6 @@ claude-agent-sdk-rs = "0.6.4"
 # Logging & Observability
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "json"] }
+
+# Async utilities
+futures = "0.3.31"

@@ -1,0 +1,33 @@
+Generate the design specification document for feature: {{ feature_slug }}
+
+## Feature ID
+
+{{ feature_id }}
+
+## Working Directory
+
+{{ working_dir }}
+
+## Task
+
+Create a design specification document following the GBA format. The document should include:
+
+1. **Feature Overview**: Brief description of the feature
+2. **Goals**: What this feature aims to achieve
+3. **Non-Goals**: What is explicitly out of scope
+4. **Technical Design**:
+   - Architecture overview
+   - Data models
+   - API contracts
+   - Component interactions
+5. **Implementation Phases**: Break down into ordered phases with:
+   - Phase name
+   - Description
+   - Key tasks
+   - Acceptance criteria
+6. **Dependencies**: External dependencies and their versions
+7. **Risks and Mitigations**: Potential issues and how to address them
+
+Format the output as Markdown suitable for saving to `specs/{{ feature_id }}-{{ feature_slug }}-design.md`.
+
+Output the complete design specification.

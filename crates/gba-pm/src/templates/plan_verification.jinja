@@ -1,0 +1,33 @@
+Generate the verification plan for feature: {{ feature_slug }}
+
+## Feature ID
+
+{{ feature_id }}
+
+## Task
+
+Create a verification plan document that defines how to verify the implementation is complete and correct. The plan should include:
+
+1. **Verification Scope**: What aspects will be verified
+
+2. **Test Categories**:
+   - Unit tests: Test individual functions/methods
+   - Integration tests: Test component interactions
+   - End-to-end tests: Test complete workflows
+
+3. **Test Cases**: For each test case include:
+   - Test ID
+   - Description
+   - Preconditions
+   - Steps
+   - Expected result
+
+4. **Manual Verification Steps**: Steps that require human verification
+
+5. **Acceptance Criteria**: Checklist of criteria for feature acceptance
+
+6. **Rollback Plan**: How to revert if issues are found
+
+Format the output as Markdown suitable for saving to `specs/{{ feature_id }}-{{ feature_slug }}-verification.md`.
+
+Output the complete verification plan.
