@@ -21,8 +21,32 @@ gba-cli (命令行应用)
 ## 前置条件
 
 - Rust stable（2024 edition，版本锁定在 `rust-toolchain.toml`）
-- 设置 `ANTHROPIC_API_KEY` 环境变量
+- 安装 [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)（`claude` 命令需在 `$PATH` 中可用）
 - 安装 `gh` CLI（用于 `gba run` 中创建 PR）
+
+### Claude API 配置
+
+GBA 底层通过 `claude-agent-sdk-rs` 以子进程方式调用本机安装的 Claude Code CLI（`claude`），**不直接调用 HTTP API**。因此 API URL 和 API Key 的配置完全依赖于 Claude Code CLI 自身的配置：
+
+- **API Key**：设置环境变量 `ANTHROPIC_API_KEY`，或在 Claude Code 的 `~/.claude/settings.json` 中配置
+- **API URL**（自定义端点）：设置环境变量 `ANTHROPIC_BASE_URL`，或在 `~/.claude/settings.json` 中配置
+
+```bash
+# 环境变量方式
+export ANTHROPIC_API_KEY="sk-ant-..."
+export ANTHROPIC_BASE_URL="https://api.anthropic.com"  # 可选，默认即为官方端点
+
+# 或在 Claude Code settings 中配置
+# ~/.claude/settings.json
+{
+  "env": {
+    "ANTHROPIC_API_KEY": "sk-ant-...",
+    "ANTHROPIC_BASE_URL": "https://your-custom-endpoint.com"
+  }
+}
+```
+
+> **注意**：请确保运行 `claude --version` 能正常输出版本号，以验证 CLI 安装正确。
 
 ## 安装
 
