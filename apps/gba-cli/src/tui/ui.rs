@@ -132,12 +132,16 @@ async fn handle_send_with_animation(
     session: &mut PlanSession,
     message: &str,
 ) -> Result<()> {
+    use tracing::debug;
+
+    debug!("Starting handle_send_with_animation");
+
     // Draw initial frame with spinner before API call
     app.tick_spinner();
     terminal.draw(|frame| draw(frame, app))?;
 
     // Get the stream with animation during the wait
-    // We use tokio::select! in a loop to animate while waiting for send_stream
+    debug!("Calling send_stream");
     let stream_fut = session.send_stream(message);
     let mut stream_fut = std::pin::pin!(stream_fut);
 
@@ -145,7 +149,17 @@ async fn handle_send_with_animation(
         // Try to poll the future with a timeout
         tokio::select! {
             result = &mut stream_fut => {
-                break result?;
+                match result {
+                    Ok(s) => {
+                        debug!("send_stream completed successfully");
+                        break s;
+                    }
+                    Err(e) => {
+                        debug!(error = %e, "send_stream failed");
+                        app.set_error(e.to_string());
+                        return Ok(());
+                    }
+                }
             }
             _ = tokio::time::sleep(std::time::Duration::from_millis(100)) => {
                 // Timeout - animate and continue polling
@@ -155,6 +169,7 @@ async fn handle_send_with_animation(
         }
     };
 
+    debug!("Processing stream");
     let mut stream = std::pin::pin!(stream);
     let mut response = String::new();
 
@@ -165,16 +180,22 @@ async fn handle_send_with_animation(
             result = stream.next() => {
                 match result {
                     Some(Ok(GbaEvent::AssistantMessage(text))) => {
+                        debug!(text_len = text.len(), "Received assistant message");
                         response.push_str(&text);
                     }
                     Some(Ok(GbaEvent::WaitingForInput)) => {
+                        debug!("Received WaitingForInput");
                         break;
                     }
                     Some(Err(e)) => {
+                        debug!(error = %e, "Stream error");
                         app.set_error(e.to_string());
                         return Ok(());
                     }
-                    None => break,
+                    None => {
+                        debug!("Stream ended");
+                        break;
+                    }
                     _ => {}
                 }
             }
@@ -186,8 +207,13 @@ async fn handle_send_with_animation(
         }
     }
 
+    debug!(response_len = response.len(), "Stream processing complete");
+
     if !response.is_empty() {
         app.add_assistant_message(response);
+    } else {
+        // If no text response, add a generic message
+        app.add_assistant_message("Done.".to_string());
     }
 
     app.state = AppState::Dialogue;
@@ -275,6 +301,33 @@ fn handle_dialogue_key(
                 app.clear_input();
                 app.state = AppState::WaitingForResponse;
                 app.pending_message = Some(message);
+            }
+            return true;
+        }
+        // Up/Down for scrolling messages when input is single line
+        KeyCode::Up => {
+            if app.textarea.lines().len() == 1 {
+                app.scroll_up();
+            } else {
+                app.textarea.input(Input {
+                    key: Key::Up,
+                    ctrl: false,
+                    alt: false,
+                    shift: false,
+                });
+            }
+            return true;
+        }
+        KeyCode::Down => {
+            if app.textarea.lines().len() == 1 {
+                app.scroll_down(visible_height);
+            } else {
+                app.textarea.input(Input {
+                    key: Key::Down,
+                    ctrl: false,
+                    alt: false,
+                    shift: false,
+                });
             }
             return true;
         }
@@ -516,7 +569,7 @@ fn draw_messages(frame: &mut Frame, app: &mut App, area: Rect) {
         } else {
             0
         };
-        format!(" Messages ({}%, Ctrl+↑↓ to scroll) ", scroll_percent)
+        format!(" Messages ({}%, ↑↓ to scroll) ", scroll_percent)
     } else {
         " Messages ".to_string()
     };
