@@ -6,7 +6,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use crossterm::event::{self, Event as CrosstermEvent, KeyEvent, KeyEventKind};
+use crossterm::event::{self, Event as CrosstermEvent, KeyEvent, KeyEventKind, MouseEvent};
 use tracing::trace;
 
 /// Terminal event types.
@@ -14,6 +14,8 @@ use tracing::trace;
 pub enum Event {
     /// Key press event.
     Key(KeyEvent),
+    /// Mouse event (scroll, click, etc.).
+    Mouse(MouseEvent),
     /// Terminal resize event.
     #[allow(dead_code)]
     Resize(u16, u16),
@@ -54,6 +56,12 @@ impl EventHandler {
                                     if tx.send(Event::Key(key)).is_err() {
                                         break;
                                     }
+                                }
+                            }
+                            CrosstermEvent::Mouse(mouse) => {
+                                trace!(mouse = ?mouse, "Mouse event");
+                                if tx.send(Event::Mouse(mouse)).is_err() {
+                                    break;
                                 }
                             }
                             CrosstermEvent::Resize(width, height) => {

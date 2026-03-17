@@ -6,13 +6,13 @@
 use std::io::Stdout;
 
 use anyhow::Result;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind};
 use futures::StreamExt;
 use gba_core::{GbaEngine, GbaEvent, PlanSession};
 use ratatui::{
     Frame, Terminal,
     backend::CrosstermBackend,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout, Rect, Size},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
     widgets::{Block, Borders, Clear, Paragraph, Wrap},
@@ -109,6 +109,10 @@ pub async fn run_app(
                         }
                     }
                 }
+            }
+            Event::Mouse(mouse) => {
+                // Handle mouse scroll in messages area
+                handle_mouse_event(&mut app, mouse, terminal.size()?);
             }
             Event::Resize(_, _) => {
                 // Terminal will be redrawn on next iteration
@@ -688,4 +692,46 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
+}
+
+/// Handles mouse events for scrolling in the messages area.
+fn handle_mouse_event(app: &mut App, mouse: MouseEvent, term_size: Size) {
+    // Calculate input area height based on content
+    let input_lines = app.textarea.lines().len().max(1);
+    let input_height = (input_lines + 2).clamp(3, 10) as u16;
+
+    // Calculate messages area bounds (matching draw function layout)
+    // Layout: margin (1) + header (3) + margin (1) = y starts at 5
+    // Messages area: from y=5 to y=(term_height - margin - input_height - margin)
+    let margin: u16 = 1;
+    let header_height: u16 = 3;
+    let messages_y_start = margin + header_height + margin;
+    let messages_y_end = term_size
+        .height
+        .saturating_sub(margin + input_height + margin);
+
+    // Check if mouse is in messages area
+    let mouse_in_messages = mouse.row >= messages_y_start && mouse.row < messages_y_end;
+
+    if !mouse_in_messages {
+        return;
+    }
+
+    // Handle scroll events
+    match mouse.kind {
+        MouseEventKind::ScrollUp => {
+            // Calculate visible height for scroll limit
+            let visible_height = messages_y_end.saturating_sub(messages_y_start) as usize;
+            let visible_height = visible_height.saturating_sub(4); // Account for borders and status
+            app.scroll_up();
+            let _ = visible_height; // Used for scroll_down, but scroll_up doesn't need it
+        }
+        MouseEventKind::ScrollDown => {
+            // Calculate visible height for scroll limit
+            let visible_height = messages_y_end.saturating_sub(messages_y_start) as usize;
+            let visible_height = visible_height.saturating_sub(4); // Account for borders and status
+            app.scroll_down(visible_height);
+        }
+        _ => {}
+    }
 }
