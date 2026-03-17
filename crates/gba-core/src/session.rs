@@ -3,6 +3,7 @@
 //! This module provides `AgentSession` which wraps `ClaudeClient` and manages
 //! multi-turn conversations with tool permission presets.
 
+use std::path::PathBuf;
 use std::pin::Pin;
 
 use claude_agent_sdk_rs::{
@@ -77,6 +78,7 @@ impl AgentSession {
     ///     AgentPreset::ReadOnly,
     ///     &config,
     ///     "You are a code reviewer.".to_string(),
+    ///     None,
     /// )?;
     /// # Ok(())
     /// # }
@@ -85,6 +87,7 @@ impl AgentSession {
         preset: AgentPreset,
         config: &SessionConfig,
         system_prompt: String,
+        cli_path: Option<PathBuf>,
     ) -> Result<Self, GbaCoreError> {
         let allowed_tools: Vec<String> = preset
             .allowed_tools()
@@ -97,16 +100,22 @@ impl AgentSession {
             tools = ?allowed_tools,
             model = %config.model,
             max_turns = config.max_turns,
+            cli_path = ?cli_path,
             "Creating agent session"
         );
 
-        let options = ClaudeAgentOptions::builder()
+        let mut options = ClaudeAgentOptions::builder()
             .model(&config.model)
             .max_turns(config.max_turns as u32)
             .allowed_tools(allowed_tools)
             .system_prompt(SystemPrompt::Text(system_prompt.clone()))
             .permission_mode(PermissionMode::BypassPermissions)
             .build();
+
+        // Set cli_path if provided
+        if let Some(path) = cli_path {
+            options.cli_path = Some(path);
+        }
 
         let client = ClaudeClient::new(options);
 
@@ -170,6 +179,7 @@ impl AgentSession {
     ///     AgentPreset::ReadOnly,
     ///     &config,
     ///     "You are helpful.".to_string(),
+    ///     None,  // cli_path - use default
     /// )?;
     /// session.connect().await?;
     ///
@@ -299,6 +309,7 @@ mod tests {
             AgentPreset::ReadOnly,
             &config,
             "You are helpful.".to_string(),
+            None,
         );
 
         assert!(session.is_ok());
@@ -314,6 +325,7 @@ mod tests {
             AgentPreset::FullCoding,
             &config,
             "System prompt".to_string(),
+            None,
         )
         .unwrap();
 

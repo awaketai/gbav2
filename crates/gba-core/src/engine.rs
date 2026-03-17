@@ -154,6 +154,7 @@ impl GbaEngine {
                 AgentPreset::ReadOnly,
                 &self.config.sessions.init,
                 system_prompt.clone(),
+                self.config.cli_path.clone(),
             )?;
 
             analyze_session.connect().await?;
@@ -183,6 +184,7 @@ impl GbaEngine {
                     AgentPreset::WriteSpec,
                     &self.config.sessions.init,
                     system_prompt.clone(),
+                    self.config.cli_path.clone(),
                 )?;
 
                 gba_session.connect().await?;
@@ -211,6 +213,7 @@ impl GbaEngine {
                 AgentPreset::WriteSpec,
                 &self.config.sessions.init,
                 system_prompt,
+                self.config.cli_path.clone(),
             )?;
 
             claude_session.connect().await?;

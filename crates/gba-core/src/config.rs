@@ -74,6 +74,10 @@ pub struct GbaConfig {
     /// Session configurations for different scenarios.
     #[serde(default)]
     pub sessions: SessionsConfig,
+    /// Path to the Claude CLI executable.
+    /// If not specified, the SDK will auto-detect from PATH or CLAUDE_CLI_PATH env var.
+    #[serde(default)]
+    pub cli_path: Option<PathBuf>,
 }
 
 impl GbaConfig {
@@ -83,6 +87,7 @@ impl GbaConfig {
         Self {
             working_dir: working_dir.into(),
             sessions: SessionsConfig::default(),
+            cli_path: None,
         }
     }
 
@@ -116,6 +121,7 @@ impl GbaConfig {
         Self {
             working_dir: working_dir.into(),
             sessions,
+            cli_path: None,
         }
     }
 

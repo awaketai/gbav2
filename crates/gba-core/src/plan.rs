@@ -3,6 +3,7 @@
 //! This module provides `PlanSession` which manages multi-round planning dialogue
 //! with the agent, upgrading from ReadOnly to WriteSpec when finalizing.
 
+use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 
@@ -78,6 +79,8 @@ pub struct PlanSession {
     state: PlanState,
     /// Session configuration for finalizing.
     finalize_config: SessionConfig,
+    /// Path to the Claude CLI executable.
+    cli_path: Option<PathBuf>,
 }
 
 impl PlanSession {
@@ -102,8 +105,12 @@ impl PlanSession {
         let system_prompt = prompt_manager.render(PromptId::PlanSystem, &ctx)?;
 
         // Create ReadOnly session for dialogue
-        let dialogue_session =
-            AgentSession::new(AgentPreset::ReadOnly, &config.sessions.plan, system_prompt)?;
+        let dialogue_session = AgentSession::new(
+            AgentPreset::ReadOnly,
+            &config.sessions.plan,
+            system_prompt,
+            config.cli_path.clone(),
+        )?;
 
         let mut session = Self {
             dialogue_session,
@@ -113,6 +120,7 @@ impl PlanSession {
             feature_id: None,
             state: PlanState::Dialogue,
             finalize_config: config.sessions.plan.clone(),
+            cli_path: config.cli_path.clone(),
         };
 
         // Connect the session
@@ -226,8 +234,12 @@ impl PlanSession {
             .with_feature_id(&feature_id);
         let system_prompt = self.prompt_manager.render(PromptId::PlanSystem, &ctx)?;
 
-        let mut spec_session =
-            AgentSession::new(AgentPreset::WriteSpec, &self.finalize_config, system_prompt)?;
+        let mut spec_session = AgentSession::new(
+            AgentPreset::WriteSpec,
+            &self.finalize_config,
+            system_prompt,
+            self.cli_path.clone(),
+        )?;
         spec_session.connect().await?;
 
         // Generate design spec

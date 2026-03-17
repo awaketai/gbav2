@@ -218,6 +218,7 @@ impl Runner {
             let verification_plan = self.verification_plan.clone();
             let prompt_manager = Arc::clone(&self.prompt_manager);
             let session_config = self.config.sessions.run_phase.clone();
+            let cli_path = self.config.cli_path.clone();
             let git = self.git.clone();
             let total = self.phases.len();
             let phases = self.phases;
@@ -262,6 +263,7 @@ impl Runner {
                     AgentPreset::FullCoding,
                     &session_config,
                     system_prompt.clone(),
+                    cli_path.clone(),
                 )?;
 
                 session.connect().await?;

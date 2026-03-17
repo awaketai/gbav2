@@ -60,6 +60,7 @@
 //!     AgentPreset::ReadOnly,
 //!     &config,
 //!     "You are a code reviewer.".to_string(),
+//!     None,  // cli_path - use default
 //! )?;
 //!
 //! session.connect().await?;

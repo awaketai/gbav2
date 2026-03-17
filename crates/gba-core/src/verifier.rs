@@ -119,6 +119,7 @@ impl Verifier {
             AgentPreset::Verify,
             &self.config.sessions.run_verify,
             system_prompt,
+            self.config.cli_path.clone(),
         )?;
 
         session.connect().await?;

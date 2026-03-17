@@ -115,6 +115,7 @@ impl Reviewer {
             AgentPreset::ReadOnly,
             &self.config.sessions.run_review,
             system_prompt,
+            self.config.cli_path.clone(),
         )?;
 
         session.connect().await?;
@@ -227,6 +228,7 @@ impl Reviewer {
             AgentPreset::FullCoding,
             &self.config.sessions.run_phase,
             system_prompt,
+            self.config.cli_path.clone(),
         )?;
 
         session.connect().await?;
