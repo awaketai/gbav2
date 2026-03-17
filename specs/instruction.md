@@ -40,5 +40,32 @@ cargo generate tyrchen/rust-lib-template
 
 ## 构建 gba
 
-构建一个新的额 git worktree(branch from main)，放在 .trees 下，仔细阅读 ./specs/gba-design.md 设计文档，根据其要求，使用 sub agent 分阶段完成其功能，每次完成一个阶段后提交代码，并确保 precommit hooks 通过。完成所有阶段后，启动一个新的 sub agent 调用 codex code review skill 对照 design spec 来 review 代码，然后根据 review 结果仔细思考，对合理的问题进行修改，并提交代码。最后，确保所有的测试都通过，并确保所有功能都符合 design spec 的要求后，生成一个 pull request，提供详细的 PR description。
+构建一个新的 git worktree(branch from main)，放在 .trees 下，仔细阅读 ./specs/gba-design.md 设计文档，根据其要求，使用 sub agent 分阶段完成其功能，每次完成一个阶段后提交代码，并确保 precommit hooks 通过。完成所有阶段后，启动一个新的 sub agent 调用 codex code review skill 对照 design spec 来 review 代码，然后根据 review 结果仔细思考，对合理的问题进行修改，并提交代码。最后，确保所有的测试都通过，并确保所有功能都符合 design spec 的要求后，生成一个 pull request，提供详细的 PR description。
 
+## 测试
+
+1.安装 gba `cargo install --path apps/gba-cli`
+
+2.测试文档计划
+
+```
+gba plan update-doc
+
+```
+for each crate,it should have an API.md doc in their folder to illustrate the public interface of the crate so that it's easy to understand and use.
+
+问题1：if user input is long,it didn't wrap to next line.
+
+问题2：按回车后很久没有反应，回车后，应该将用户的输入内容展示在 Messages 区域，并清空输入框
+
+问题3：在 plan 阶段，理解用户的意图，根据这个意图构建 design.md spec，而非完成用户期待的工作，在这个对话中，用户希望生成 API.md，结果 assistant 直接生成了，这里应该有一个设计，和用户不断讨论，一旦用户确认，应该把这个设计写入到合适的地方。请更新 prompt，确保这里不做过多的工作。
+
+优化：在 GBA Plan 区域应该展示状态，比如和用户对话中应该显示：Discussing...，Assistan 工作时应该展示 Working... 或者其他的标识。以表明当前工作的状态，不然现在在等待 assistant 处理期间，页面没有太明显的标识，导致不知道当前是否在正常工作
+
+问题4：gba plan 需要创建一个initial state.yml，在 prompt 中处理
+
+问题5：assistant 响应后，向我提问，但是我看不到全部的问题，Message 区域应该是能滚动显示对话全部内容
+
+优化：当内容确认后，plan mode 应该退出，提示用户使用 `gba run` 执行这个 feature 的后续步骤
+
+问题6：Messages 区域显示 上下箭头 to scroll，但是按上下按键没有反应

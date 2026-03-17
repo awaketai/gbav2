@@ -85,6 +85,16 @@ impl EventHandler {
     pub fn next(&self) -> Result<Event, mpsc::RecvError> {
         self.rx.recv()
     }
+
+    /// Receives the next event with a timeout.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the timeout is reached or the channel is closed.
+    #[allow(dead_code)]
+    pub fn next_timeout(&self, timeout: Duration) -> Result<Event, mpsc::RecvTimeoutError> {
+        self.rx.recv_timeout(timeout)
+    }
 }
 
 impl Default for EventHandler {

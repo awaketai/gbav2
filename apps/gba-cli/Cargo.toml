@@ -18,6 +18,7 @@ clap = { workspace = true }
 crossterm = "0.29"
 futures = { workspace = true }
 ratatui = { workspace = true }
+ratatui-textarea = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
